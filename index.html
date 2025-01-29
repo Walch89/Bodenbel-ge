@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>AR Bodenbelag</title>
+    <title>AR Bodenbelag - SHARKGROUP</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.3.2/aframe/build/aframe-ar.min.js"></script>
 </head>
@@ -10,114 +10,46 @@
 <body style="margin: 0; overflow: hidden;">
     <a-scene embedded arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
              vr-mode-ui="enabled: false"
-             renderer="logarithmicDepthBuffer: true; precision: medium;"
-             xr-mode-ui="enabled: true">
+             renderer="logarithmicDepthBuffer: true; precision: medium;">
         
         <a-assets>
-            <img id="boden-textur" src="" crossorigin="anonymous">
+            <img id="boden-textur" src="https://raw.githubusercontent.com/Walch89/Bodenbel-ge/main/parkett.jpg" crossorigin="anonymous">
         </a-assets>
 
-        <!-- ✅ Boden wird entweder per WebXR oder als normales 3D-Objekt gesetzt -->
-        <a-entity id="boden"
-                  geometry="primitive: plane; width: 5; height: 5"
-                  material="src: #boden-textur"
-                  position="0 0 -2"
-                  rotation="-90 0 0"
-                  visible="false">
-        </a-entity>
+        <!-- ✅ Dein SHARKGROUP Logo als AR-Tracking-Marker -->
+        <a-marker id="boden-marker" type="pattern"
+                  url="https://raw.githubusercontent.com/Walch89/Bodenbel-ge/main/pattern-SHARKGROUP_Logo.patt">
+            
+            <!-- ✅ Bodenbild erscheint über deinem Marker -->
+            <a-plane id="boden"
+                     geometry="primitive: plane; width: 5; height: 5"
+                     material="src: #boden-textur"
+                     position="0 0 0"
+                     rotation="-90 0 0"
+                     visible="false">
+            </a-plane>
 
-        <!-- Kamera -->
-        <a-camera position="0 1.6 0" look-controls wasd-controls>
+        </a-marker>
+
+        <!-- AR-Kamera -->
+        <a-camera position="0 1.6 0" look-controls>
             <a-cursor id="cursor" raycaster="objects: #boden"></a-cursor>
         </a-camera>
     </a-scene>
 
     <script>
-        console.log("🚀 AR-Szene gestartet");
-
-        function getRawGitHubURL(url) {
-            return url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/");
-        }
-
-        function getQueryVariable(variable) {
-            var query = window.location.search.substring(1);
-            var vars = query.split("&");
-            for (var i = 0; i < vars.length; i++) {
-                var pair = vars[i].split("=");
-                if (pair[0] === variable) {
-                    return decodeURIComponent(pair[1]);
-                }
-            }
-            return null;
-        }
-
-        var bodenTyp = getQueryVariable("boden");
-        console.log("🧐 Bodenbelag erkannt:", bodenTyp);
-
-        var bodenBilder = {
-            "parkett": getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg"),
-            "fliesen": getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg"),
-            "vinyl": getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg")
-        };
-
-        var bodenBild = bodenBilder[bodenTyp] || getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg");
-        console.log("🎨 Bild gesetzt auf:", bodenBild);
-
-        var bodenTextur = document.getElementById("boden-textur");
-
-        bodenTextur.onerror = function () {
-            console.error("❌ Fehler beim Laden des Bildes:", bodenBild);
-        };
-
-        bodenTextur.onload = function () {
-            console.log("✅ Bild erfolgreich geladen");
-            document.getElementById("boden").setAttribute("material", "src: #boden-textur");
-        };
-        bodenTextur.setAttribute("src", bodenBild);
+        console.log("🚀 WebAR mit SHARKGROUP-Logo als Marker gestartet!");
 
         let boden = document.getElementById("boden");
 
-        // 🔹 WebXR testen (falls nicht verfügbar, nutze Fallback)
-        if (navigator.xr) {
-            console.log("🌍 WebXR ist verfügbar!");
-            document.querySelector("a-scene").setAttribute("xr-mode-ui", "enabled: true");
-        } else {
-            console.warn("⚠️ WebXR nicht unterstützt! Fallback-Modus aktiviert.");
-            document.querySelector("a-scene").setAttribute("xr-mode-ui", "enabled: false");
+        document.getElementById("boden-marker").addEventListener('markerFound', function() {
+            console.log("📌 SHARKGROUP Logo erkannt → Boden wird sichtbar");
             boden.setAttribute("visible", "true");
-        }
-
-        // 🔹 WebXR Plane Detection
-        AFRAME.registerComponent("hit-test", {
-            init: function () {
-                let sceneEl = document.querySelector("a-scene");
-
-                sceneEl.addEventListener("enter-vr", function () {
-                    console.log("🌍 AR-Modus aktiviert – Suche nach Bodenflächen...");
-                    boden.setAttribute("visible", "false");
-                });
-
-                sceneEl.addEventListener("exit-vr", function () {
-                    console.log("⏹️ AR-Modus beendet");
-                });
-
-                this.el.sceneEl.addEventListener("ar-hit-test-start", function (evt) {
-                    console.log("🔍 Plane gefunden!");
-                    let hitTestEntity = document.querySelector("#ar-hit-test");
-                    hitTestEntity.setAttribute("visible", "true");
-                });
-
-                this.el.sceneEl.addEventListener("ar-hit-test-select", function (evt) {
-                    let position = evt.detail.position;
-                    console.log("📍 Boden platziert auf:", position);
-
-                    boden.setAttribute("position", `${position.x} ${position.y} ${position.z}`);
-                    boden.setAttribute("visible", "true");
-                });
-            }
         });
 
-        document.querySelector("a-scene").setAttribute("hit-test", "");
+        document.getElementById("boden-marker").addEventListener('markerLost', function() {
+            console.log("⚠️ Marker verloren → Boden bleibt sichtbar (kann optional versteckt werden)");
+        });
     </script>
 
 </body>
