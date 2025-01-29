@@ -8,8 +8,8 @@
 </head>
 
 <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" 
-             vr-mode-ui="enabled: false" 
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;"
+             vr-mode-ui="enabled: false"
              renderer="logarithmicDepthBuffer: true; precision: medium;">
         
         <a-assets>
@@ -17,16 +17,16 @@
         </a-assets>
 
         <!-- AR-Marker für den Boden -->
-        <a-marker id="boden-marker" type="pattern" 
+        <a-marker id="boden-marker" type="pattern"
                   url="https://arjs-cors-proxy.herokuapp.com/https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/patt.hiro">
-            <a-plane id="boden" src="#boden-textur" 
-                     position="0 0 0" rotation="-90 0 0" 
-                     width="5" height="5" visible="false">
+            <a-plane id="boden" src="#boden-textur"
+                     position="0 0 0" rotation="-90 0 0"
+                     width="5" height="5" visible="true">
             </a-plane>
         </a-marker>
 
-        <!-- Kamera & Cursor für Touch-Interaktion -->
-        <a-camera position="0 1.6 0" look-controls cursor="rayOrigin: mouse">
+        <!-- Kamera -->
+        <a-camera position="0 1.6 0" look-controls>
             <a-cursor id="cursor" raycaster="objects: #boden"></a-cursor>
         </a-camera>
     </a-scene>
@@ -81,17 +81,21 @@
         };
         bodenTextur.setAttribute("src", bodenBild);
 
-        // 🔹 Marker-Tracking für Bodenplatzierung
+        let markerDetected = false;
+
+        // 🔹 Marker-Tracking für Bodenplatzierung (Boden bleibt sichtbar!)
         document.getElementById("boden-marker").addEventListener('markerFound', function() {
             let boden = document.getElementById("boden");
-            console.log("📌 AR-Marker erkannt → Boden wird sichtbar");
+            console.log("📌 AR-Marker erkannt → Boden bleibt sichtbar");
             boden.setAttribute("visible", "true");
+            markerDetected = true;
         });
 
+        // 🔹 Marker nicht mehr nötig → Boden bleibt sichtbar!
         document.getElementById("boden-marker").addEventListener('markerLost', function() {
-            let boden = document.getElementById("boden");
-            console.log("⚠️ AR-Marker verloren → Boden wird unsichtbar");
-            boden.setAttribute("visible", "false");
+            if (markerDetected) {
+                console.log("🔒 AR-Marker verloren, aber Boden bleibt sichtbar");
+            }
         });
 
     </script>
