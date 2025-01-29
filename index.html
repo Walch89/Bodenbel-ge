@@ -16,7 +16,7 @@
             <img id="boden-textur" src="" crossorigin="anonymous">
         </a-assets>
 
-        <!-- ✅ Nur zum Erkennen des Markers (keine direkte Positionierung) -->
+        <!-- ✅ AR-Marker zum Erkennen (setzt nur Position) -->
         <a-marker id="boden-marker" preset="hiro"></a-marker>
 
         <!-- ✅ Boden wird unabhängig vom Marker gesetzt -->
@@ -88,7 +88,12 @@
             console.log("📌 AR-Marker erkannt → Boden wird an der richtigen Stelle gesetzt");
 
             let markerPosition = event.target.object3D.position.clone();
-            boden.setAttribute("position", `${markerPosition.x} 0 ${markerPosition.z}`);
+            let markerY = event.target.object3D.position.y; // Höhe des Markers
+
+            // ✅ Y-Koordinate korrigieren → 0 oder leicht über Boden
+            let newY = markerY > 0 ? markerY : 0.01;  
+
+            boden.setAttribute("position", `${markerPosition.x} ${newY} ${markerPosition.z}`);
             boden.setAttribute("visible", "true");
 
             markerDetected = true;
