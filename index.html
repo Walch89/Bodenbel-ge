@@ -17,26 +17,23 @@
             <img id="boden-textur" src="" crossorigin="anonymous">
         </a-assets>
 
-        <!-- ✅ Boden wird ohne Marker auf einer erkannten Fläche platziert -->
+        <!-- ✅ Boden wird entweder per WebXR oder als normales 3D-Objekt gesetzt -->
         <a-entity id="boden"
                   geometry="primitive: plane; width: 5; height: 5"
                   material="src: #boden-textur"
-                  position="0 0 0"
+                  position="0 0 -2"
                   rotation="-90 0 0"
                   visible="false">
         </a-entity>
 
-        <!-- AR-Kamera -->
+        <!-- Kamera -->
         <a-camera position="0 1.6 0" look-controls wasd-controls>
             <a-cursor id="cursor" raycaster="objects: #boden"></a-cursor>
         </a-camera>
-
-        <!-- Interaktive Platzierung -->
-        <a-entity id="ar-hit-test" visible="false"></a-entity>
     </a-scene>
 
     <script>
-        console.log("🚀 AR-Szene mit WebXR gestartet");
+        console.log("🚀 AR-Szene gestartet");
 
         function getRawGitHubURL(url) {
             return url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/");
@@ -80,7 +77,17 @@
 
         let boden = document.getElementById("boden");
 
-        // 🔹 Hit-Test für Plane Detection (keine Marker nötig!)
+        // 🔹 WebXR testen (falls nicht verfügbar, nutze Fallback)
+        if (navigator.xr) {
+            console.log("🌍 WebXR ist verfügbar!");
+            document.querySelector("a-scene").setAttribute("xr-mode-ui", "enabled: true");
+        } else {
+            console.warn("⚠️ WebXR nicht unterstützt! Fallback-Modus aktiviert.");
+            document.querySelector("a-scene").setAttribute("xr-mode-ui", "enabled: false");
+            boden.setAttribute("visible", "true");
+        }
+
+        // 🔹 WebXR Plane Detection
         AFRAME.registerComponent("hit-test", {
             init: function () {
                 let sceneEl = document.querySelector("a-scene");
@@ -104,7 +111,6 @@
                     let position = evt.detail.position;
                     console.log("📍 Boden platziert auf:", position);
 
-                    // ✅ Boden endgültig platzieren
                     boden.setAttribute("position", `${position.x} ${position.y} ${position.z}`);
                     boden.setAttribute("visible", "true");
                 });
