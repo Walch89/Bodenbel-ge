@@ -4,37 +4,39 @@
     <meta charset="UTF-8">
     <title>AR Bodenbelag</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@1.7.2/aframe/build/aframe-ar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.3.2/aframe/build/aframe-ar.min.js"></script>
 </head>
 
 <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;"
+    <a-scene embedded arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
              vr-mode-ui="enabled: false"
-             renderer="logarithmicDepthBuffer: true; precision: medium;">
+             renderer="logarithmicDepthBuffer: true; precision: medium;"
+             xr-mode-ui="enabled: true">
         
         <a-assets>
             <img id="boden-textur" src="" crossorigin="anonymous">
         </a-assets>
 
-        <!-- ✅ AR-Marker (zum Initialisieren) -->
-        <a-marker id="boden-marker" preset="hiro"></a-marker>
-
-        <!-- ✅ Boden fixiert auf Y=0 -->
-        <a-entity id="boden" geometry="primitive: plane; width: 5; height: 5"
+        <!-- ✅ Boden wird ohne Marker auf einer erkannten Fläche platziert -->
+        <a-entity id="boden"
+                  geometry="primitive: plane; width: 5; height: 5"
                   material="src: #boden-textur"
                   position="0 0 0"
                   rotation="-90 0 0"
                   visible="false">
         </a-entity>
 
-        <!-- Kamera -->
-        <a-camera position="0 1.6 0" look-controls>
+        <!-- AR-Kamera -->
+        <a-camera position="0 1.6 0" look-controls wasd-controls>
             <a-cursor id="cursor" raycaster="objects: #boden"></a-cursor>
         </a-camera>
+
+        <!-- Interaktive Platzierung -->
+        <a-entity id="ar-hit-test" visible="false"></a-entity>
     </a-scene>
 
     <script>
-        console.log("🚀 AR-Szene geladen");
+        console.log("🚀 AR-Szene mit WebXR gestartet");
 
         function getRawGitHubURL(url) {
             return url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/");
@@ -76,38 +78,40 @@
         };
         bodenTextur.setAttribute("src", bodenBild);
 
-        let markerDetected = false;
+        let boden = document.getElementById("boden");
 
-        document.getElementById("boden-marker").addEventListener('markerFound', function(event) {
-            let boden = document.getElementById("boden");
-            console.log("📌 AR-Marker erkannt → Boden wird fixiert");
+        // 🔹 Hit-Test für Plane Detection (keine Marker nötig!)
+        AFRAME.registerComponent("hit-test", {
+            init: function () {
+                let sceneEl = document.querySelector("a-scene");
 
-            let markerObject = event.target.object3D;
-            let markerPosition = markerObject.position.clone();
+                sceneEl.addEventListener("enter-vr", function () {
+                    console.log("🌍 AR-Modus aktiviert – Suche nach Bodenflächen...");
+                    boden.setAttribute("visible", "false");
+                });
 
-            // ✅ DEBUG: Marker-Position ausgeben
-            console.log("🔍 Marker Position (X, Y, Z):", markerPosition.x, markerPosition.y, markerPosition.z);
+                sceneEl.addEventListener("exit-vr", function () {
+                    console.log("⏹️ AR-Modus beendet");
+                });
 
-            // ✅ Höhe fix auf Y=0 setzen (verhindert Schweben)
-            boden.object3D.position.set(markerPosition.x, 0, markerPosition.z);
-            boden.object3D.rotation.set(-Math.PI / 2, 0, 0); // Korrekte Rotation
+                this.el.sceneEl.addEventListener("ar-hit-test-start", function (evt) {
+                    console.log("🔍 Plane gefunden!");
+                    let hitTestEntity = document.querySelector("#ar-hit-test");
+                    hitTestEntity.setAttribute("visible", "true");
+                });
 
-            boden.setAttribute("visible", "true");
+                this.el.sceneEl.addEventListener("ar-hit-test-select", function (evt) {
+                    let position = evt.detail.position;
+                    console.log("📍 Boden platziert auf:", position);
 
-            // ✅ LÖSE BODEN VOM MARKER & FIXIERE POSITION
-            boden.removeAttribute("marker-controls");
-            boden.setAttribute("static-body", ""); // Verhindert versehentliches Verschieben
-
-            markerDetected = true;
-        });
-
-        // ✅ Boden bleibt sichtbar, auch wenn der Marker verloren geht
-        document.getElementById("boden-marker").addEventListener('markerLost', function() {
-            if (markerDetected) {
-                console.log("🔒 AR-Marker verloren, aber Boden bleibt sichtbar");
+                    // ✅ Boden endgültig platzieren
+                    boden.setAttribute("position", `${position.x} ${position.y} ${position.z}`);
+                    boden.setAttribute("visible", "true");
+                });
             }
         });
 
+        document.querySelector("a-scene").setAttribute("hit-test", "");
     </script>
 
 </body>
