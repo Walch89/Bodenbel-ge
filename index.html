@@ -43,13 +43,13 @@
       // 🔹 Verfügbare Bodenbeläge
       var bodenTyp = getQueryVariable("boden");
       var bodenBilder = {
-          "parkett": "https://dein-server.com/parkett.jpg",
-          "fliesen": "https://dein-server.com/fliesen.jpg",
-          "vinyl": "https://dein-server.com/vinyl.jpg"
+          "parkett": "https://i.imgur.com/avqSYp3.jpg",
+          "fliesen": "https://i.imgur.com/avqSYp3.jpg",
+          "vinyl": "https://i.imgur.com/avqSYp3.jpg"
       };
 
       // 🔹 Standardbild, falls kein Boden-Typ angegeben wurde
-      var bodenBild = bodenBilder[bodenTyp] || "https://imgur.com/avqSYp3";
+      var bodenBild = bodenBilder[bodenTyp] || "https://i.imgur.com/avqSYp3.jpg";
 
       // 🔹 Textur laden & sichtbar machen
       var bodenPlane = document.getElementById("boden");
