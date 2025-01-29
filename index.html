@@ -88,12 +88,9 @@
             console.log("📌 AR-Marker erkannt → Boden wird an der richtigen Stelle gesetzt");
 
             let markerPosition = event.target.object3D.position.clone();
-            let markerY = event.target.object3D.position.y; // Höhe des Markers
 
-            // ✅ Y-Koordinate korrigieren → 0 oder leicht über Boden
-            let newY = markerY > 0 ? markerY : 0.01;  
-
-            boden.setAttribute("position", `${markerPosition.x} ${newY} ${markerPosition.z}`);
+            // ✅ Y-Koordinate IGNORIEREN → Immer auf Boden setzen (Y=0)
+            boden.setAttribute("position", `${markerPosition.x} 0 ${markerPosition.z}`);
             boden.setAttribute("visible", "true");
 
             markerDetected = true;
