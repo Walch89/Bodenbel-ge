@@ -16,7 +16,7 @@
             <img id="boden-textur" src="" crossorigin="anonymous">
         </a-assets>
 
-        <!-- ✅ AR-Marker für den Boden (Kein eigener patt.hiro nötig!) -->
+        <!-- ✅ AR-Marker für den Boden (Hiro-Marker) -->
         <a-marker id="boden-marker" preset="hiro">
             <a-plane id="boden" src="#boden-textur"
                      position="0 0 0" rotation="-90 0 0"
@@ -86,11 +86,17 @@
         document.getElementById("boden-marker").addEventListener('markerFound', function() {
             let boden = document.getElementById("boden");
             console.log("📌 AR-Marker erkannt → Boden bleibt sichtbar");
+
+            // ✅ Boden fest auf dem Boden ausrichten
+            boden.setAttribute("position", "0 0 0"); 
+            boden.setAttribute("rotation", "-90 0 0"); // Gerade auf dem Boden ausrichten
             boden.setAttribute("visible", "true");
+
+            // ✅ Marker nicht mehr nötig → Boden bleibt sichtbar
             markerDetected = true;
         });
 
-        // 🔹 Marker nicht mehr nötig → Boden bleibt sichtbar!
+        // ✅ Der Boden verschwindet nicht mehr, wenn der Marker verloren geht
         document.getElementById("boden-marker").addEventListener('markerLost', function() {
             if (markerDetected) {
                 console.log("🔒 AR-Marker verloren, aber Boden bleibt sichtbar");
