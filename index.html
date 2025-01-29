@@ -4,25 +4,27 @@
     <meta charset="UTF-8">
     <title>AR Bodenbelag</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/1.7.2/aframe/build/aframe-ar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-ar.js@1.7.2/aframe/build/aframe-ar.min.js"></script>
 </head>
 
 <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" 
+             vr-mode-ui="enabled: false" 
+             renderer="logarithmicDepthBuffer: true; precision: medium;">
+
+        <!-- Assets und Texturen -->
         <a-assets>
             <img id="boden-textur" src="" crossorigin="anonymous">
         </a-assets>
 
-        <!-- Platzhalter für Boden -->
-        <a-entity id="placement-marker" visible="true" position="0 0 -3">
-            <a-ring color="yellow" radius-inner="0.15" radius-outer="0.2"></a-ring>
-        </a-entity>
+        <!-- AR Marker und Bodenfläche -->
+        <a-marker type="pattern" url="https://raw.githubusercontent.com/jeromeetienne/AR.js/master/aframe/examples/marker-training/examples/patterns/hiro.patt">
+            <a-plane id="boden" src="#boden-textur" position="0 0 0" rotation="-90 0 0" width="5" height="5" visible="false"></a-plane>
+        </a-marker>
 
-        <!-- Bodenfläche -->
-        <a-plane id="boden" visible="false" rotation="-90 0 0" width="5" height="5"></a-plane>
-
-        <a-camera position="0 1.6 0" look-controls cursor="rayOrigin: mouse">
-            <a-cursor id="cursor" raycaster="objects: #placement-marker"></a-cursor>
+        <!-- Kamera -->
+        <a-camera position="0 1.6 0" look-controls>
+            <a-cursor id="cursor" raycaster="objects: #boden"></a-cursor>
         </a-camera>
     </a-scene>
 
@@ -56,16 +58,13 @@
         var bodenBild = bodenBilder[bodenTyp] || getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg");
         document.getElementById("boden-textur").setAttribute("src", bodenBild);
 
-        // 🔹 Wenn Nutzer auf Marker tippt → Boden setzen
-        document.getElementById("placement-marker").addEventListener("click", function () {
-            let boden = document.getElementById("boden");
-            let marker = document.getElementById("placement-marker");
-
-            boden.setAttribute("position", marker.getAttribute("position"));
+        // 🔹 Wenn der Marker erkannt wird, soll der Boden angezeigt werden
+        var marker = document.querySelector("a-marker");
+        marker.addEventListener('markerFound', function() {
+            var boden = document.getElementById("boden");
             boden.setAttribute("visible", "true");
-            marker.setAttribute("visible", "false");
         });
-
     </script>
+
 </body>
 </html>
