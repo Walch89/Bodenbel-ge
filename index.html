@@ -4,30 +4,30 @@
     <meta charset="UTF-8">
     <title>AR Bodenbelag</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-xr@latest/dist/aframe-xr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js/1.7.2/aframe/build/aframe-ar.min.js"></script>
 </head>
 
 <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded xr-mode-ui="enabled: true" webxr="optionalFeatures: hit-test;">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
         <a-assets>
             <img id="boden-textur" src="" crossorigin="anonymous">
         </a-assets>
 
-        <!-- Platzhalter für AR-Boden -->
-        <a-entity id="placement-marker" visible="false">
+        <!-- Platzhalter für Boden -->
+        <a-entity id="placement-marker" visible="true" position="0 0 -3">
             <a-ring color="yellow" radius-inner="0.15" radius-outer="0.2"></a-ring>
         </a-entity>
 
         <!-- Bodenfläche -->
         <a-plane id="boden" visible="false" rotation="-90 0 0" width="5" height="5"></a-plane>
 
-        <a-camera position="0 1.6 0" look-controls>
+        <a-camera position="0 1.6 0" look-controls cursor="rayOrigin: mouse">
             <a-cursor id="cursor" raycaster="objects: #placement-marker"></a-cursor>
         </a-camera>
     </a-scene>
 
     <script>
-        // 🔹 Bild-URL aus GitHub holen (korrektes RAW-Format)
+        // 🔹 Korrekte URL für Bilder (GitHub-kompatibel)
         function getRawGitHubURL(url) {
             return url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/");
         }
@@ -56,37 +56,16 @@
         var bodenBild = bodenBilder[bodenTyp] || getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg");
         document.getElementById("boden-textur").setAttribute("src", bodenBild);
 
-        // 🔹 XR Hit-Test für Boden-Tracking
-        AFRAME.registerComponent("hit-test", {
-            init: function () {
-                var scene = this.el;
-                var marker = document.getElementById("placement-marker");
-                var boden = document.getElementById("boden");
+        // 🔹 Wenn Nutzer auf Marker tippt → Boden setzen
+        document.getElementById("placement-marker").addEventListener("click", function () {
+            let boden = document.getElementById("boden");
+            let marker = document.getElementById("placement-marker");
 
-                scene.addEventListener("enter-vr", function () {
-                    if (scene.hasAttribute("xr-mode-ui")) {
-                        navigator.xr.requestSession("immersive-ar", {
-                            requiredFeatures: ["hit-test"]
-                        }).then(session => {
-                            session.requestReferenceSpace("local").then(referenceSpace => {
-                                session.requestHitTestSource({ space: referenceSpace }).then(hitTestSource => {
-                                    scene.setAttribute("xr-hit-test-source", hitTestSource);
-                                });
-                            });
-
-                            session.addEventListener("select", function (event) {
-                                let position = marker.getAttribute("position");
-                                boden.setAttribute("position", position);
-                                boden.setAttribute("visible", "true");
-                                marker.setAttribute("visible", "false");
-                            });
-                        });
-                    }
-                });
-            }
+            boden.setAttribute("position", marker.getAttribute("position"));
+            boden.setAttribute("visible", "true");
+            marker.setAttribute("visible", "false");
         });
 
-        document.querySelector("a-scene").setAttribute("hit-test", "");
     </script>
 </body>
 </html>
