@@ -17,7 +17,7 @@
 
       <!-- Interaktive Bodenfläche -->
       <a-plane id="boden" src="#boden-textur" 
-               position="0 0 -2" rotation="-90 0 0" 
+               position="0 0 0" rotation="-90 0 0" 
                width="5" height="5" 
                gesture-handler shadow>
       </a-plane>
@@ -77,6 +77,9 @@
 
           var scale = 1;
           var position = el.getAttribute("position");
+
+          // ✅ Y-Koordinate bleibt auf 0 (keine Höhenabweichung mehr)
+          position.y = 0;
 
           hammer.on("pinchmove", function (evt) {
             scale = Math.max(0.5, Math.min(3, scale * evt.scale));
