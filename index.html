@@ -16,13 +16,15 @@
             <img id="boden-textur" src="" crossorigin="anonymous">
         </a-assets>
 
-        <!-- ✅ AR-Marker zum Erkennen (setzt nur Position) -->
+        <!-- ✅ AR-Marker -->
         <a-marker id="boden-marker" preset="hiro"></a-marker>
 
-        <!-- ✅ Boden wird unabhängig vom Marker gesetzt -->
+        <!-- ✅ Boden wird fix auf Y=0 gesetzt -->
         <a-entity id="boden" geometry="primitive: plane; width: 5; height: 5"
-                  material="src: #boden-textur" position="0 0 -2"
-                  rotation="-90 0 0" visible="false">
+                  material="src: #boden-textur"
+                  position="0 0 -2"
+                  rotation="-90 0 0"
+                  visible="false">
         </a-entity>
 
         <!-- Kamera -->
@@ -85,11 +87,15 @@
         // 🔹 Marker-Tracking → Boden bleibt auch nach Marker-Verlust sichtbar
         document.getElementById("boden-marker").addEventListener('markerFound', function(event) {
             let boden = document.getElementById("boden");
-            console.log("📌 AR-Marker erkannt → Boden wird an der richtigen Stelle gesetzt");
+            console.log("📌 AR-Marker erkannt → Boden wird auf Höhe 0 gesetzt");
 
-            let markerPosition = event.target.object3D.position.clone();
+            // ✅ Boden direkt auf Y=0 setzen
+            let markerObject = event.target.object3D;
+            let markerPosition = markerObject.position.clone();
+            markerPosition.y = 0; // Manuell Y=0 setzen
 
-            // ✅ Y-Koordinate IGNORIEREN → Immer auf Boden setzen (Y=0)
+            markerObject.position.set(markerPosition.x, 0, markerPosition.z);
+
             boden.setAttribute("position", `${markerPosition.x} 0 ${markerPosition.z}`);
             boden.setAttribute("visible", "true");
 
