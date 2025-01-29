@@ -1,42 +1,46 @@
-
 <!DOCTYPE html>
 <html>
   <head>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/1.7.2/aframe/build/aframe-ar.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@6.1.1/dist/aframe-extras.controls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r127/examples/js/controls/OrbitControls.js"></script>
   </head>
   
   <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" 
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;"
              vr-mode-ui="enabled: false" 
              renderer="logarithmicDepthBuffer: true; precision: medium;">
       
       <a-assets>
         <img id="boden-textur" src="" crossorigin="anonymous">
       </a-assets>
-      
-      <!-- Interaktiver Boden -->
-      <a-plane id="boden" src="#boden-textur" position="0 0 -2" rotation="-90 0 0" width="5" height="5" gesture-handler></a-plane>
+
+      <!-- Interaktive Bodenfläche -->
+      <a-plane id="boden" src="#boden-textur" 
+               position="0 0 -2" rotation="-90 0 0" 
+               width="5" height="5" 
+               gesture-handler shadow>
+      </a-plane>
       
       <a-marker-camera preset="hiro"></a-marker-camera>
     </a-scene>
 
     <script>
-      // Funktion zum Auslesen der Bodenbelag-Parameter aus der URL
+      // 🔹 URL-Parameter auslesen (z. B. ?boden=parkett)
       function getQueryVariable(variable) {
           var query = window.location.search.substring(1);
           var vars = query.split("&");
           for (var i = 0; i < vars.length; i++) {
               var pair = vars[i].split("=");
               if (pair[0] === variable) {
-                  return decodeURIComponent(pair[1]); // URL-decoding
+                  return decodeURIComponent(pair[1]);
               }
           }
           return null;
       }
 
-      // Liste der Bodenbeläge
+      // 🔹 Verfügbare Bodenbeläge
       var bodenTyp = getQueryVariable("boden");
       var bodenBilder = {
           "parkett": "https://dein-server.com/parkett.jpg",
@@ -44,28 +48,45 @@
           "vinyl": "https://dein-server.com/vinyl.jpg"
       };
 
-      // Standardbild, falls kein Bodenbelag gesetzt wurde
+      // 🔹 Standardbild, falls kein Boden-Typ angegeben wurde
       var bodenBild = bodenBilder[bodenTyp] || "https://dein-server.com/default.jpg";
 
-      // Bild setzen & sichtbar machen
+      // 🔹 Textur laden & sichtbar machen
       var bodenPlane = document.getElementById("boden");
       var bodenTextur = document.getElementById("boden-textur");
+
+      bodenTextur.onload = function() {
+          bodenPlane.setAttribute("material", "src: #boden-textur");
+      };
       bodenTextur.setAttribute("src", bodenBild);
-      bodenPlane.setAttribute("material", "src: " + bodenBild);
-      bodenPlane.setAttribute("visible", "true");
     </script>
 
-    <!-- Script für Interaktionssteuerung -->
+    <!-- 🔹 Script für Drag & Pinch zum Verschieben und Skalieren -->
     <script>
       AFRAME.registerComponent('gesture-handler', {
+        schema: {
+          enabled: { default: true }
+        },
+        
         init: function () {
-          this.el.addEventListener('dragstart', function (evt) {
-            evt.preventDefault();
+          var el = this.el;
+          var hammer = new Hammer(document.body);
+
+          hammer.get('pinch').set({ enable: true });
+          hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL });
+
+          var scale = 1;
+          var position = el.getAttribute("position");
+
+          hammer.on("pinchmove", function (evt) {
+            scale = Math.max(0.5, Math.min(3, scale * evt.scale));
+            el.setAttribute("scale", { x: scale, y: scale, z: scale });
           });
 
-          this.el.addEventListener('dragmove', function (evt) {
-            var pos = this.getAttribute("position");
-            this.setAttribute("position", { x: pos.x, y: evt.detail.position.y, z: pos.z });
+          hammer.on("panmove", function (evt) {
+            position.x += evt.deltaX * 0.001;
+            position.z += evt.deltaY * 0.001;
+            el.setAttribute("position", position);
           });
         }
       });
