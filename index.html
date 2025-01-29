@@ -3,8 +3,7 @@
   <head>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/1.7.2/aframe/build/aframe-ar.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@6.1.1/dist/aframe-extras.controls.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r127/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://hammerjs.github.io/dist/hammer.min.js"></script>
   </head>
   
   <body style="margin: 0; overflow: hidden;">
@@ -27,6 +26,11 @@
     </a-scene>
 
     <script>
+      // 🔹 Korrekte URL für Bilder (GitHub-kompatibel)
+      function getRawGitHubURL(url) {
+          return url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/");
+      }
+
       // 🔹 URL-Parameter auslesen (z. B. ?boden=parkett)
       function getQueryVariable(variable) {
           var query = window.location.search.substring(1);
@@ -40,18 +44,18 @@
           return null;
       }
 
-      // 🔹 Verfügbare Bodenbeläge
+      // 🔹 Verfügbare Bodenbeläge (GitHub RAW Links verwenden!)
       var bodenTyp = getQueryVariable("boden");
       var bodenBilder = {
-          "parkett": "https://i.imgur.com/avqSYp3.jpg",
-          "fliesen": "https://i.imgur.com/avqSYp3.jpg",
-          "vinyl": "https://i.imgur.com/avqSYp3.jpg"
+          "parkett": getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg"),
+          "fliesen": getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg"),
+          "vinyl": getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg")
       };
 
       // 🔹 Standardbild, falls kein Boden-Typ angegeben wurde
-      var bodenBild = bodenBilder[bodenTyp] || "https://i.imgur.com/avqSYp3.jpg";
+      var bodenBild = bodenBilder[bodenTyp] || getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg");
 
-      // 🔹 Textur laden & sichtbar machen
+      // 🔹 Bild setzen & sichtbar machen
       var bodenPlane = document.getElementById("boden");
       var bodenTextur = document.getElementById("boden-textur");
 
@@ -61,16 +65,12 @@
       bodenTextur.setAttribute("src", bodenBild);
     </script>
 
-    <!-- 🔹 Script für Drag & Pinch zum Verschieben und Skalieren -->
+    <!-- 🔹 Verbesserte Drag-&-Pinch-Steuerung -->
     <script>
       AFRAME.registerComponent('gesture-handler', {
-        schema: {
-          enabled: { default: true }
-        },
-        
         init: function () {
           var el = this.el;
-          var hammer = new Hammer(document.body);
+          var hammer = new Hammer(el.sceneEl.canvas);
 
           hammer.get('pinch').set({ enable: true });
           hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL });
@@ -84,8 +84,8 @@
           });
 
           hammer.on("panmove", function (evt) {
-            position.x += evt.deltaX * 0.001;
-            position.z += evt.deltaY * 0.001;
+            position.x += evt.deltaX * 0.0005;
+            position.z += evt.deltaY * 0.0005;
             el.setAttribute("position", position);
           });
         }
