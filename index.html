@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <title>AR Bodenbelag</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/aframe-ar.js@1.7.2/aframe/build/aframe-ar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@1.7.2/aframe/build/aframe-ar.min.js"></script>
 </head>
 
 <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" 
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: true;" 
              vr-mode-ui="enabled: false" 
              renderer="logarithmicDepthBuffer: true; precision: medium;">
         
@@ -32,8 +32,11 @@
     </a-scene>
 
     <script>
+        console.log("🚀 AR-Szene geladen");
+
         // 🔹 Funktion für GitHub RAW Bild-Links
         function getRawGitHubURL(url) {
+            console.log("📢 Ursprüngliche Bild-URL: ", url);
             return url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/");
         }
 
@@ -52,6 +55,8 @@
 
         // 🔹 Verfügbare Bodenbeläge
         var bodenTyp = getQueryVariable("boden");
+        console.log("🧐 Bodenbelag erkannt:", bodenTyp);
+
         var bodenBilder = {
             "parkett": getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg"),
             "fliesen": getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg"),
@@ -60,10 +65,18 @@
 
         // 🔹 Standardbild setzen, falls kein Boden ausgewählt wurde
         var bodenBild = bodenBilder[bodenTyp] || getRawGitHubURL("https://i.imgur.com/avqSYp3.jpg");
+        console.log("🎨 Bild gesetzt auf:", bodenBild);
+
         var bodenTextur = document.getElementById("boden-textur");
+
+        // 🔹 Falls Bild nicht geladen wird, Fehler melden
+        bodenTextur.onerror = function () {
+            console.error("❌ Fehler beim Laden des Bildes:", bodenBild);
+        };
 
         // 🔹 Sobald das Bild geladen ist, setze es auf das Material
         bodenTextur.onload = function () {
+            console.log("✅ Bild erfolgreich geladen");
             document.getElementById("boden").setAttribute("material", "src: #boden-textur");
         };
         bodenTextur.setAttribute("src", bodenBild);
@@ -71,8 +84,16 @@
         // 🔹 Marker-Tracking für Bodenplatzierung
         document.getElementById("boden-marker").addEventListener('markerFound', function() {
             let boden = document.getElementById("boden");
+            console.log("📌 AR-Marker erkannt → Boden wird sichtbar");
             boden.setAttribute("visible", "true");
         });
+
+        document.getElementById("boden-marker").addEventListener('markerLost', function() {
+            let boden = document.getElementById("boden");
+            console.log("⚠️ AR-Marker verloren → Boden wird unsichtbar");
+            boden.setAttribute("visible", "false");
+        });
+
     </script>
 
 </body>
