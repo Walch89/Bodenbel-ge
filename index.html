@@ -16,13 +16,14 @@
             <img id="boden-textur" src="" crossorigin="anonymous">
         </a-assets>
 
-        <!-- ✅ AR-Marker für den Boden (Hiro-Marker) -->
-        <a-marker id="boden-marker" preset="hiro">
-            <a-plane id="boden" src="#boden-textur"
-                     position="0 0 0" rotation="-90 0 0"
-                     width="5" height="5" visible="false">
-            </a-plane>
-        </a-marker>
+        <!-- ✅ Nur zum Erkennen des Markers (keine direkte Positionierung) -->
+        <a-marker id="boden-marker" preset="hiro"></a-marker>
+
+        <!-- ✅ Boden wird unabhängig vom Marker gesetzt -->
+        <a-entity id="boden" geometry="primitive: plane; width: 5; height: 5"
+                  material="src: #boden-textur" position="0 0 -2"
+                  rotation="-90 0 0" visible="false">
+        </a-entity>
 
         <!-- Kamera -->
         <a-camera position="0 1.6 0" look-controls>
@@ -35,7 +36,6 @@
 
         // 🔹 Funktion für GitHub RAW Bild-Links
         function getRawGitHubURL(url) {
-            console.log("📢 Ursprüngliche Bild-URL: ", url);
             return url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/");
         }
 
@@ -82,21 +82,19 @@
 
         let markerDetected = false;
 
-        // 🔹 Marker-Tracking für Bodenplatzierung (Boden bleibt sichtbar!)
-        document.getElementById("boden-marker").addEventListener('markerFound', function() {
+        // 🔹 Marker-Tracking → Boden bleibt auch nach Marker-Verlust sichtbar
+        document.getElementById("boden-marker").addEventListener('markerFound', function(event) {
             let boden = document.getElementById("boden");
-            console.log("📌 AR-Marker erkannt → Boden bleibt sichtbar");
+            console.log("📌 AR-Marker erkannt → Boden wird an der richtigen Stelle gesetzt");
 
-            // ✅ Boden fest auf dem Boden ausrichten
-            boden.setAttribute("position", "0 0 0"); 
-            boden.setAttribute("rotation", "-90 0 0"); // Gerade auf dem Boden ausrichten
+            let markerPosition = event.target.object3D.position.clone();
+            boden.setAttribute("position", `${markerPosition.x} 0 ${markerPosition.z}`);
             boden.setAttribute("visible", "true");
 
-            // ✅ Marker nicht mehr nötig → Boden bleibt sichtbar
             markerDetected = true;
         });
 
-        // ✅ Der Boden verschwindet nicht mehr, wenn der Marker verloren geht
+        // ✅ Der Boden bleibt sichtbar, auch wenn der Marker verloren geht
         document.getElementById("boden-marker").addEventListener('markerLost', function() {
             if (markerDetected) {
                 console.log("🔒 AR-Marker verloren, aber Boden bleibt sichtbar");
