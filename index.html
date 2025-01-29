@@ -16,13 +16,13 @@
             <img id="boden-textur" src="" crossorigin="anonymous">
         </a-assets>
 
-        <!-- ✅ AR-Marker -->
+        <!-- ✅ AR-Marker (nur zur Initialisierung) -->
         <a-marker id="boden-marker" preset="hiro"></a-marker>
 
-        <!-- ✅ Boden wird unabhängig vom Marker auf Höhe 0 fixiert -->
+        <!-- ✅ Boden wird unabhängig vom Marker platziert -->
         <a-entity id="boden" geometry="primitive: plane; width: 5; height: 5"
                   material="src: #boden-textur"
-                  position="0 0 0"  <!-- HIER setzen wir Y=0 FIX! -->
+                  position="0 0 -2"
                   rotation="-90 0 0"
                   visible="false">
         </a-entity>
@@ -80,18 +80,24 @@
 
         document.getElementById("boden-marker").addEventListener('markerFound', function(event) {
             let boden = document.getElementById("boden");
-            console.log("📌 AR-Marker erkannt → Boden wird gesetzt");
+            console.log("📌 AR-Marker erkannt → Boden wird fixiert");
 
-            let markerPosition = event.target.object3D.position.clone();
+            let markerObject = event.target.object3D;
+            let markerPosition = markerObject.position.clone();
 
-            // ✅ DEBUGGING: Zeige die tatsächliche Marker-Höhe an
-            console.log("🔍 Marker Höhe (Y):", markerPosition.y);
+            // ✅ DEBUG: Marker-Position ausgeben
+            console.log("🔍 Marker Position (X, Y, Z):", markerPosition.x, markerPosition.y, markerPosition.z);
 
-            // ✅ Höhe auf 0 fixieren!
-            boden.setAttribute("position", `${markerPosition.x} 0 ${markerPosition.z}`);
+            // ✅ Höhe fix auf Y=0 setzen (verhindert Schweben)
+            markerPosition.y = 0;
+
+            // ✅ Boden auf fester Position halten
+            boden.object3D.position.set(markerPosition.x, 0, markerPosition.z);
+            boden.object3D.rotation.set(-Math.PI / 2, 0, 0); // Korrekte Rotation
+
             boden.setAttribute("visible", "true");
 
-            // ✅ LÖSE BODEN VOM MARKER → Jetzt bleibt er unabhängig
+            // ✅ LÖSE BODEN VOM MARKER → Bleibt fixiert
             boden.removeAttribute("marker-controls");
 
             markerDetected = true;
